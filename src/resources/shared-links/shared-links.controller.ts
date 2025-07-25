@@ -1,34 +1,71 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { SharedLinksService } from './shared-links.service';
-import { CreateSharedLinkDto } from './dto/create-shared-link.dto';
-import { UpdateSharedLinkDto } from './dto/update-shared-link.dto';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
+import { AuthUser } from '@common/decorators';
+import { AuthUserGuard } from '@common/guards';
+import { ITokenPayload } from '@common/models';
+
+import { CreateSharedLinkDto, ShareLinkResponseDto } from './dto/';
+import { SharedLinksService } from './shared-links.service';
+
+@ApiTags('Share Link')
 @Controller('shared-links')
 export class SharedLinksController {
-  constructor(private readonly sharedLinksService: SharedLinksService) {}
+  constructor(private sharedLinksService: SharedLinksService) {}
 
-  @Post()
-  create(@Body() createSharedLinkDto: CreateSharedLinkDto) {
-    return this.sharedLinksService.create(createSharedLinkDto);
+  @ApiOperation({ summary: 'Create one-time share link' })
+  @ApiBearerAuth()
+  @UseGuards(AuthUserGuard)
+  @ApiResponse({ type: ShareLinkResponseDto })
+  @Post('/notes/:id/share')
+  async create(
+    @Param('id') id: string,
+    @AuthUser() user: ITokenPayload,
+    @Body() body: CreateSharedLinkDto,
+  ) {
+    return this.sharedLinksService.create(id, user.id, body);
   }
 
-  @Get()
-  findAll() {
-    return this.sharedLinksService.findAll();
+  @ApiOperation({ summary: 'Open shared note via link (no auth)' })
+  @ApiResponse({ type: ShareLinkResponseDto })
+  @Get('/public/notes/:token')
+  async open(@Param('token') token: string) {
+    return this.sharedLinksService.findPublic(token);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.sharedLinksService.findOne(+id);
+  @ApiOperation({ summary: 'Get list of links for a note' })
+  @ApiBearerAuth()
+  @UseGuards(AuthUserGuard)
+  @Get('/notes/:id/share')
+  async list(@Param('id') id: string, @AuthUser() user: ITokenPayload) {
+    return this.sharedLinksService.list(id, user.id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSharedLinkDto: UpdateSharedLinkDto) {
-    return this.sharedLinksService.update(+id, updateSharedLinkDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.sharedLinksService.remove(+id);
+  @ApiOperation({ summary: 'Revoke specific link by ID' })
+  @ApiBearerAuth()
+  @UseGuards(AuthUserGuard)
+  @Delete('/notes/:id/share/:tokenId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async revoke(
+    @Param('id') id: string,
+    @Param('tokenId') tokenId: string,
+    @AuthUser() user: ITokenPayload,
+  ) {
+    return this.sharedLinksService.revoke(id, tokenId, user.id);
   }
 }

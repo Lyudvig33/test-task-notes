@@ -1,22 +1,31 @@
 import { Module } from '@nestjs/common';
-import { UsersService } from './users.service';
-import { UsersController } from './users.controller';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { UsersEntity } from '@common/database/entities';
-import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { TypeOrmModule } from '@nestjs/typeorm';
+
+import { UsersEntity } from '@common/database/entities';
+import { IJwtConfig } from '@common/models';
+
+import { UsersController } from './users.controller';
+import { UsersService } from './users.service';
 
 @Module({
   imports: [
     JwtModule.registerAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_CONFIG.secret'),
-        signOptions: {
-          expiresIn: configService.get<string>('JWT_CONFIG.expiresIn'),
-        },
-      }),
       inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const jwtConfig = configService.get<IJwtConfig>('JWT_CONFIG');
+        if (!jwtConfig) {
+          throw new Error('JWT_CONFIG is not defined');
+        }
+        return {
+          secret: jwtConfig.secret,
+          signOptions: {
+            expiresIn: jwtConfig.expiresIn,
+          },
+        };
+      },
     }),
     TypeOrmModule.forFeature([UsersEntity]),
   ],

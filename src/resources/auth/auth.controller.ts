@@ -6,21 +6,25 @@ import {
   HttpStatus,
   UseGuards,
 } from '@nestjs/common';
-import { AuthService } from './auth.service';
 import {
   ApiBearerAuth,
   ApiOperation,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { RegistrationDto } from './dto/registration.dto';
-import { LoginDto } from './dto/login.dto';
-import { AuthTokenDTO } from './dto/auth-token.dto';
-import { RefreshTokenDto } from './dto/refresh-token.dto';
-import { SuccessDTO } from '@common/dtos';
+
 import { AuthUser } from '@common/decorators';
-import { ITokenPayload } from '@common/models';
+import { SuccessDTO } from '@common/dtos';
 import { AuthUserGuard } from '@common/guards';
+import { ITokenPayload } from '@common/models';
+
+import { AuthService } from './auth.service';
+import {
+  AuthTokenDTO,
+  LoginDto,
+  RefreshTokenDto,
+  RegistrationDto,
+} from './dto';
 
 @ApiTags('Authorization')
 @Controller('auth')
@@ -30,7 +34,7 @@ export class AuthController {
   @Post('/register')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
-    summary: 'registered a new user and returns an authentication token',
+    summary: 'Registered a new user',
   })
   async create(@Body() body: RegistrationDto) {
     return this.authService.registration(body);

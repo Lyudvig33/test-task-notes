@@ -10,35 +10,37 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { NotesService } from './notes.service';
-import { CreateNoteDto } from './dto/create-note.dto';
-import { UpdateNoteDto } from './dto/update-note.dto';
 import {
   ApiBearerAuth,
   ApiOperation,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { AuthUserGuard } from '@common/guards';
-import { NoteResponseDto } from './dto/note-response.dto';
+
 import { AuthUser } from '@common/decorators';
+import { AuthUserGuard } from '@common/guards';
 import { ITokenPayload } from '@common/models';
+
+import { CreateNoteDto, NoteResponseDto, UpdateNoteDto } from './dto';
+import { NotesService } from './notes.service';
 
 @ApiTags('Notes')
 @ApiBearerAuth()
 @UseGuards(AuthUserGuard)
 @Controller('notes')
 export class NotesController {
-  constructor(private readonly notesService: NotesService) {}
+  constructor(private notesService: NotesService) {}
 
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new note' })
   @ApiResponse({ type: NoteResponseDto, status: 201 })
-  create(@Body() dto: CreateNoteDto, @AuthUser() user: ITokenPayload) {
-    return this.notesService.create(user.id, dto);
+  create(@Body() body: CreateNoteDto, @AuthUser() user: ITokenPayload) {
+    return this.notesService.create(user.id, body);
   }
 
   @Get()
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get all user notes' })
   @ApiResponse({ type: [NoteResponseDto] })
   findAll(@AuthUser() user: ITokenPayload) {
@@ -57,16 +59,16 @@ export class NotesController {
   @ApiResponse({ type: NoteResponseDto })
   update(
     @Param('id') id: string,
-    @Body() dto: UpdateNoteDto,
+    @Body() body: UpdateNoteDto,
     @AuthUser() user: ITokenPayload,
   ) {
-    return this.notesService.update(id, user.id, dto);
+    return this.notesService.update(id, user.id, body);
   }
 
   @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a note' })
   @ApiResponse({ status: 200 })
-  @HttpCode(HttpStatus.OK)
   remove(@Param('id') id: string, @AuthUser() user: ITokenPayload) {
     return this.notesService.remove(id, user.id);
   }

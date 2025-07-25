@@ -1,13 +1,12 @@
-import {
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-import { CreateNoteDto } from './dto/create-note.dto';
-import { UpdateNoteDto } from './dto/update-note.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { NoteEntity, UsersEntity } from '@common/database/entities';
+
 import { Repository } from 'typeorm';
+
+import { NoteEntity, UsersEntity } from '@common/database/entities';
+import { ERROR_MESSAGES } from '@common/erorr-mesagges';
+
+import { CreateNoteDto, UpdateNoteDto } from './dto';
 
 @Injectable()
 export class NotesService {
@@ -17,16 +16,14 @@ export class NotesService {
     private readonly usersRepo: Repository<UsersEntity>,
   ) {}
 
-  async create(userId: string, dto: CreateNoteDto): Promise<NoteEntity> {
+  async create(userId: string, body: CreateNoteDto): Promise<NoteEntity> {
     const user = await this.usersRepo.findOneByOrFail({ id: userId });
 
-    const note = this.notesRepo.create({
-      title: dto.title,
-      body: dto.body,
+    return this.notesRepo.save({
+      title: body.title,
+      body: body.body,
       user,
     });
-
-    return this.notesRepo.save(note);
   }
 
   async findAll(userId: string): Promise<NoteEntity[]> {
@@ -38,22 +35,20 @@ export class NotesService {
 
   async findOne(id: string, userId: string): Promise<NoteEntity> {
     const note = await this.notesRepo.findOne({
-      where: { id },
+      where: { id, userId },
       relations: ['user'],
     });
-    if (!note) throw new NotFoundException('Note not found');
-    if (note.userId !== userId) throw new ForbiddenException('Access denied');
+    if (!note) throw new NotFoundException(ERROR_MESSAGES.NOTE_NOT_FOUND);
     return note;
   }
 
   async update(
     id: string,
     userId: string,
-    dto: UpdateNoteDto,
+    body: UpdateNoteDto,
   ): Promise<NoteEntity> {
     const note = await this.findOne(id, userId);
-    Object.assign(note, dto);
-    return this.notesRepo.save(dto);
+    return this.notesRepo.save({ ...note, ...body });
   }
 
   async remove(id: string, userId: string): Promise<boolean> {

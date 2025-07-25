@@ -1,7 +1,9 @@
+import { ApiProperty } from '@nestjs/swagger';
+
+import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
+
 import { IsEmail } from '@common/decorators';
 import { ILogin } from '@common/models';
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
 
 export class LoginDto implements ILogin {
   @IsEmail({

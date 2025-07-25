@@ -1,46 +1,58 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UsersEntity } from '@common/database/entities';
+
 import { Repository } from 'typeorm';
+
+import { UsersEntity } from '@common/database/entities';
+import { ERROR_MESSAGES } from '@common/erorr-mesagges';
+
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserResponseDto } from './dto/user-response.dto';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(UsersEntity)
-    private usersRepository: Repository<UsersEntity>,
+    private usersRepo: Repository<UsersEntity>,
   ) {}
 
-  // This method is used to get all users
-  async findAll() {
-    return this.usersRepository.find({
+  /**
+   * Retrieves all users sorted by creation date.
+   */
+
+  async findAll(): Promise<UserResponseDto[]> {
+    return this.usersRepo.find({
       order: {
         createdAt: 'ASC',
       },
     });
   }
 
-  // This method is used to a get user by ID
-  async findOne(id: string) {
-    const user = await this.usersRepository.findOne({ where: { id } });
+  /**
+   * Retrieves a user by ID.
+   * @throws NotFoundException if user is not found.
+   */
+
+  async findOne(id: string): Promise<UserResponseDto> {
+    const user = await this.usersRepo.findOne({ where: { id } });
     if (!user) {
-      throw new NotFoundException(`User with id ${id} not found`);
+      throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND_MESSAGE);
     }
     return user;
   }
-  // This method is used to update a user by ID
-  async update(id: string, updateData: UpdateUserDto) {
-    await this.findOne(id);
-    await this.usersRepository.update(id, updateData);
-    return this.findOne(id);
+
+  /**
+   * Updates a user by ID.
+   * @throws NotFoundException if user is not found.
+   */
+  async update(id: string, body: UpdateUserDto): Promise<UpdateUserDto> {
+    const user = await this.findOne(id);
+    Object.assign(user, body);
+    return this.usersRepo.save(user);
   }
 
-  // This method is used to remove a user by ID
-  async remove(id: string) {
-    const result = await this.usersRepository.delete(id);
-    if (result.affected === 0) {
-      throw new NotFoundException(`User with id ${id} not found`);
-    }
-    return { deleted: true };
+  async remove(id: string): Promise<void> {
+    const user = await this.findOne(id);
+    await this.usersRepo.delete(user);
   }
 }

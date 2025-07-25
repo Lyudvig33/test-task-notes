@@ -1,5 +1,5 @@
-import { VALIDATION_PATTERNS } from '@common/constants';
 import { ApiProperty } from '@nestjs/swagger';
+
 import {
   IsEmail,
   IsOptional,
@@ -8,6 +8,8 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
+
+import { VALIDATION_PATTERNS } from '@common/constants';
 
 export class UpdateUserDto {
   @IsEmail()

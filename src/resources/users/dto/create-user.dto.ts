@@ -1,6 +1,5 @@
-import { VALIDATION_PATTERNS } from '@common/constants';
-import { IRegistration } from '@common/models';
 import { ApiProperty } from '@nestjs/swagger';
+
 import {
   IsEmail,
   IsNotEmpty,
@@ -9,6 +8,9 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
+
+import { VALIDATION_PATTERNS } from '@common/constants';
+import { IRegistration } from '@common/models';
 
 export class CreateUserDto implements IRegistration {
   @IsEmail()

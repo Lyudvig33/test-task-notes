@@ -1,32 +1,49 @@
 import {
   BadRequestException,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { UsersEntity } from '@common/database/entities';
-import { Repository } from 'typeorm';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
+
+import * as bcrypt from 'bcryptjs';
+import { Repository } from 'typeorm';
+
+import { UsersEntity } from '@common/database/entities';
+import { ERROR_MESSAGES } from '@common/erorr-mesagges';
 import {
   IAuthToken,
+  IJwtConfig,
   ILogin,
   ILoginResponse,
   IRegistration,
   ITokenPayload,
 } from '@common/models';
-import { ERROR_MESSAGES } from '@common/erorr-mesagges';
-import * as bcrypt from 'bcryptjs';
-import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
+  private jwtSecret: string;
+  private jwtExpiresIn: string;
+  private jwtRefreshSecret: string;
+  private jwtRefreshExpiresIn: string;
   constructor(
     @InjectRepository(UsersEntity)
     private userRepository: Repository<UsersEntity>,
     private jwtService: JwtService,
     private configService: ConfigService,
-  ) {}
+  ) {
+    const jwtConfig = this.configService.get<IJwtConfig>('JWT_CONFIG');
+
+    if (!jwtConfig) {
+      throw new Error('JWT_CONFIG is not defined in ConfigService');
+    }
+
+    this.jwtSecret = jwtConfig.secret;
+    this.jwtExpiresIn = jwtConfig.expiresIn;
+    this.jwtRefreshSecret = jwtConfig.refreshSecret;
+    this.jwtRefreshExpiresIn = jwtConfig.refreshExpiresIn;
+  }
 
   /**
    * Creates a new user in the database and returns an authentication token.
@@ -34,7 +51,7 @@ export class AuthService {
    * @returns {IAuthToken} - Authentication token for the newly registered user.
    */
 
-  async registration(body: IRegistration): Promise<boolean> {
+  async registration(body: IRegistration): Promise<{ success: boolean }> {
     const existingUser = await this.userRepository.findOne({
       where: { email: body.email },
     });
@@ -45,23 +62,12 @@ export class AuthService {
 
     body.password = await bcrypt.hash(body.password, 10);
 
-    const userToSave = {
-      ...body,
-    };
-    const { id } = await this.userRepository.save(userToSave);
-
-    const user = await this.userRepository.findOne({ where: { id } });
+    const { id } = await this.userRepository.save({ ...body });
     const tokens = this.generateTokens({ id });
     await this.saveRefreshToken(id, tokens.refreshToken);
 
-    return true;
+    return { success: true };
   }
-
-  /**
-   * Generates a JWT access token based on the provided payload.
-   * @param {ITokenPayload} payload - Data to be included in the token.
-   * @returns {Promise<string>} - Signed JWT access token.
-   */
 
   /**
    * Authenticates a user by checking credentials and returns an authentication token.
@@ -77,12 +83,7 @@ export class AuthService {
     });
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      throw new UnauthorizedException(ERROR_MESSAGES.USER_INVALID_PASSWORD);
-    }
-
-    const passwordIsValid = await bcrypt.compare(password, user.password);
-    if (!passwordIsValid) {
-      throw new BadRequestException(ERROR_MESSAGES.USER_INVALID_PASSWORD);
+      throw new BadRequestException(ERROR_MESSAGES.USER_INVALID_CREDENTIALS);
     }
 
     const tokens = this.generateTokens({
@@ -94,50 +95,79 @@ export class AuthService {
     return tokens;
   }
 
+  /**
+   * Verifies the refresh token, generates new tokens if valid.
+   * @param {string} refreshToken - Refresh token to validate and use.
+   * @returns {IAuthToken} - Newly issued tokens.
+   */
+
   async refresh(refreshToken: string): Promise<IAuthToken> {
     try {
-      const payload = this.jwtService.verify<ITokenPayload>(refreshToken, {
-        secret: this.configService.get('JWT_REFRESH_SECRET'),
-      });
-
-      const userId = payload.id;
+      const { id: userId } = this.jwtService.verify<ITokenPayload>(
+        refreshToken,
+        {
+          secret: this.jwtRefreshSecret,
+        },
+      );
 
       const isValid = await this.validateRefreshToken(userId, refreshToken);
-      if (!isValid) throw new UnauthorizedException('Invalid refresh token');
+      if (!isValid)
+        throw new UnauthorizedException(ERROR_MESSAGES.USER_UNAUTHORIZED);
 
-      const user = await this.userRepository.findOne({ where: { id: userId } });
       const tokens = this.generateTokens({ id: userId });
       await this.saveRefreshToken(userId, tokens.refreshToken);
 
       return tokens;
     } catch (err: unknown) {
       const error = err instanceof Error ? err : new Error(JSON.stringify(err));
-      throw new UnauthorizedException('Token is invalid or expired', error);
+      throw new UnauthorizedException(ERROR_MESSAGES.USER_UNAUTHORIZED, error);
     }
   }
+
+  /**
+   * Logs out the user by removing the stored refresh token.
+   * @param {string} userId - ID of the user to log out.
+   */
 
   async logout(userId: string) {
     await this.userRepository.update(userId, { refreshToken: null });
   }
 
+  /**
+   * Generates access and refresh JWT tokens.
+   * @param {ITokenPayload} payload - Data to embed in the token.
+   * @returns {IAuthToken} - Access and refresh tokens.
+   */
+
   private generateTokens(payload: ITokenPayload): IAuthToken {
     const accessToken = this.jwtService.sign(payload, {
-      secret: this.configService.get<string>('JWT_SECRET'),
-      expiresIn: this.configService.get<string>('JWT_EXPIRES_IN'),
+      secret: this.jwtSecret,
+      expiresIn: this.jwtExpiresIn,
     });
     const refreshToken = this.jwtService.sign(payload, {
-      secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
-      expiresIn: this.configService.get<string>(
-        'JWT_REFRESH_SECRET_EXPIRES_IN',
-      ),
+      secret: this.jwtRefreshSecret,
+      expiresIn: this.jwtRefreshExpiresIn,
     });
     return { accessToken, refreshToken };
   }
+
+  /**
+   * Saves a hashed version of the refresh token in the database.
+   * @param {string} userId - ID of the user.
+   * @param {string} refreshToken - Raw refresh token to hash and store.
+   */
 
   private async saveRefreshToken(userId: string, refreshToken: string) {
     const hashed = await bcrypt.hash(refreshToken, 10);
     await this.userRepository.update(userId, { refreshToken: hashed });
   }
+
+  /**
+   * Validates the refresh token against the stored hash in the database.
+   * @param {string} userId - ID of the user.
+   * @param {string} token - Refresh token to verify.
+   * @returns {Promise<boolean>} - Whether the token is valid.
+   */
 
   private async validateRefreshToken(
     userId: string,

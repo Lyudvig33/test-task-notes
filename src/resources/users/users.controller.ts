@@ -8,19 +8,21 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { UsersService } from './users.service';
-import { AuthUserGuard } from '@common/guards';
-import { AuthUser } from '@common/decorators';
-import { ITokenPayload } from '@common/models';
 import {
   ApiBearerAuth,
   ApiOperation,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+
+import { AuthUser } from '@common/decorators';
+import { AuthUserGuard } from '@common/guards';
+import { ITokenPayload } from '@common/models';
+
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UserResponseDto } from './dto/user-response.dto';
 import { UserDeleteDto } from './dto/user-delete.dto';
+import { UserResponseDto } from './dto/user-response.dto';
+import { UsersService } from './users.service';
 
 @ApiBearerAuth()
 @ApiTags('Users')
@@ -30,39 +32,34 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'get all users' })
+  @ApiOperation({ summary: 'Get all users' })
   @ApiResponse({ type: [UserResponseDto] })
-  @HttpCode(HttpStatus.OK)
-  async findAll() {
+  async findAll(): Promise<UserResponseDto[]> {
     return this.usersService.findAll();
   }
 
   @Get('me')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'get me' })
+  @ApiOperation({ summary: 'Get me' })
   @ApiResponse({ type: UserResponseDto })
-  async findOne(@AuthUser() user: ITokenPayload) {
+  async getMe(@AuthUser() user: ITokenPayload): Promise<UserResponseDto> {
     return this.usersService.findOne(user.id);
   }
 
   @Patch('me')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'update current user' })
-  @ApiResponse({ type: [UpdateUserDto] })
-  @ApiResponse({ status: 200, description: 'user successfully updated' })
+  @ApiOperation({ summary: 'Update current credentials' })
+  @ApiResponse({ type: UserResponseDto })
   async update(
     @AuthUser() user: ITokenPayload,
-    @Body() updateUserDto: UpdateUserDto,
-  ) {
-    return this.usersService.update(user.id, updateUserDto);
+    @Body() body: UpdateUserDto,
+  ): Promise<UpdateUserDto> {
+    return this.usersService.update(user.id, body);
   }
 
   @Delete('me')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'delete current user' })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Delete current user' })
   @ApiResponse({ type: UserDeleteDto })
-  async remove(@AuthUser() user: ITokenPayload) {
-    return this.usersService.remove(user.id);
+  async remove(@AuthUser() user: ITokenPayload): Promise<void> {
+    await this.usersService.remove(user.id);
   }
 }
