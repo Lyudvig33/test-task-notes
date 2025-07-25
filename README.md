@@ -303,7 +303,7 @@ JWT_REFRESH_SECRET_EXPIRES_IN=7d
 
 #Cache Configuration
 REDIS_HOST=redis
-REDIS_PORT=6379v
+REDIS_PORT=6379
 ```
 
 ## 📊 Performance
