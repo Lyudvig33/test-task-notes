@@ -168,8 +168,10 @@ The API uses JWT-based authentication with the following endpoints:
 
 ### Users
 
-- `GET /api/v1/users/profile` - Get user profile
-- `PUT /api/v1/users/profile` - Update user profile
+- `GET /api/v1/users` - Get user 
+- `PATCH /api/v1/users/me` - Update user
+  `DELETE /api/v1/users/me` - Update user
+
 
 ### Notes
 
