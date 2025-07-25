@@ -11,7 +11,7 @@ import * as bcrypt from 'bcryptjs';
 import { Repository } from 'typeorm';
 
 import { UsersEntity } from '@common/database/entities';
-import { ERROR_MESSAGES } from '@common/erorr-mesagges';
+import { ERROR_MESSAGES } from '@common/error-messages';
 import {
   IAuthToken,
   IJwtConfig,

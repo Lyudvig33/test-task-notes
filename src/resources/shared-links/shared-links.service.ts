@@ -12,7 +12,7 @@ import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
 
 import { NoteEntity, ShareLinkEntity } from '@common/database/entities';
-import { ERROR_MESSAGES } from '@common/erorr-mesagges';
+import { ERROR_MESSAGES } from '@common/error-messages';
 
 import { CreateSharedLinkDto } from './dto';
 

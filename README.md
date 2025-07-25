@@ -1,99 +1,300 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Notes API - Test Task
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A robust REST API built with NestJS for managing notes with user authentication and secure sharing capabilities.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 🚀 Features
 
-## Description
+- **User Authentication**: JWT-based authentication with refresh tokens
+- **Notes Management**: Create, read, update, and delete personal notes
+- **Secure Sharing**: Generate secure share links for notes with expiration
+- **Database**: PostgreSQL with TypeORM for data persistence
+- **Caching**: Redis integration for performance optimization
+- **API Documentation**: Swagger/OpenAPI documentation
+- **Testing**: Comprehensive test suite with Jest
+- **Docker Support**: Containerized development and production environments
+- **CI/CD**: GitHub Actions workflow for automated testing and deployment
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## 🛠 Tech Stack
 
-## Project setup
+- **Framework**: NestJS 10.4.20
+- **Language**: TypeScript
+- **Database**: PostgreSQL 15
+- **ORM**: TypeORM with transactional support
+- **Authentication**: JWT with Passport
+- **Caching**: Redis
+- **Documentation**: Swagger/OpenAPI
+- **Testing**: Jest
+- **Containerization**: Docker & Docker Compose
+- **Package Manager**: Yarn
 
-```bash
-$ yarn install
+## 📋 Prerequisites
+
+- Node.js 20+
+- Docker & Docker Compose
+- PostgreSQL 15
+- Redis
+
+## 🚀 Quick Start
+
+### Using Docker (Recommended)
+
+1. **Clone the repository**
+
+   ```bash
+   git clone <https://github.com/Lyudvig33/test-task-notes>
+   cd test-task
+   ```
+
+2. **Start the application with Docker Compose**
+
+   ```bash
+   docker-compose up -d
+   ```
+
+   This will start:
+   - PostgreSQL database on port 5434
+   - Redis on port 6379
+   - API server on port 3000
+
+3. **Access the API documentation**
+   - Swagger UI: http://localhost:3000/api/docs
+
+### Manual Setup
+
+1. **Install dependencies**
+
+   ```bash
+   yarn install
+   ```
+
+2. **Set up environment variables**
+
+   ```bash
+   cp .env.development.example .env.development
+   # Edit .env.development with your database credentials
+   ```
+
+3. **Start PostgreSQL and Redis**
+
+   ```bash
+   docker-compose up postgres redis -d
+   ```
+
+4. **Run database migrations**
+
+   ```bash
+   npm run migration:run
+   ```
+
+5. **Start the development server**
+   ```bash
+   npm run start:dev
+   ```
+
+## 📁 Project Structure
+
+```
+src/
+├── common/                    # Shared utilities and configurations
+│   ├── configs/              # Application configurations
+│   ├── database/             # Database entities and migrations
+│   ├── decorators/           # Custom decorators
+│   ├── dtos/                 # Data Transfer Objects
+│   ├── enums/                # TypeScript enums
+│   ├── error-messages/       # Error message constants
+│   ├── filters/              # Exception filters
+│   ├── guards/               # Authentication guards
+│   ├── helpers/              # Utility functions
+│   ├── interceptors/         # Request/response interceptors
+│   ├── models/               # Shared models and validators
+│   ├── pipes/                # Custom pipes
+│   └── providers/            # Shared providers
+├── resources/                # Feature modules
+│   ├── auth/                 # Authentication module
+│   ├── notes/                # Notes management module
+│   ├── shared-links/         # Note sharing module
+│   └── users/                # User management module
+├── app.module.ts             # Root application module
+└── main.ts                   # Application entry point
 ```
 
-## Compile and run the project
+## 🗄 Database Schema
+
+### Users
+
+- `id`: UUID (Primary Key)
+- `email`: String (Unique)
+- `password`: String (Hashed)
+- `refreshToken`: String (Optional)
+- `createdAt`: Timestamp
+- `updatedAt`: Timestamp
+
+### Notes
+
+- `id`: UUID (Primary Key)
+- `title`: String
+- `body`: Text
+- `userId`: UUID (Foreign Key to Users)
+- `createdAt`: Timestamp
+- `updatedAt`: Timestamp
+
+### Share Links
+
+- `id`: UUID (Primary Key)
+- `tokenHash`: String (Unique)
+- `expiresAt`: Timestamp
+- `isUsed`: Boolean
+- `noteId`: UUID (Foreign Key to Notes)
+- `createdAt`: Timestamp
+- `updatedAt`: Timestamp
+
+## 🔐 Authentication
+
+The API uses JWT-based authentication with the following endpoints:
+
+- `POST /api/v1/auth/register` - User registration
+- `POST /api/v1/auth/login` - User login
+- `POST /api/v1/auth/refresh` - Refresh access token
+- `POST /api/v1/auth/logout` - User logout
+
+## 📝 API Endpoints
+
+### Authentication
+
+- `POST /api/v1/auth/register` - Register a new user
+- `POST /api/v1/auth/login` - Login user
+- `POST /api/v1/auth/refresh` - Refresh JWT token
+- `POST /api/v1/auth/logout` - Logout user
+
+### Users
+
+- `GET /api/v1/users/profile` - Get user profile
+- `PUT /api/v1/users/profile` - Update user profile
+
+### Notes
+
+- `GET /api/v1/notes` - Get all user notes
+- `POST /api/v1/notes` - Create a new note
+- `GET /api/v1/notes/:id` - Get a specific note
+- `PUT /api/v1/notes/:id` - Update a note
+- `DELETE /api/v1/notes/:id` - Delete a note
+
+### Shared Links
+
+- `POST /api/v1/shared-links` - Create a share link for a note
+- `GET /api/v1/shared-links/:token` - Access a shared note
+- `DELETE /api/v1/shared-links/:id` - Delete a share link
+
+## 🧪 Testing
+
+Run the test suite:
 
 ```bash
-# development
-$ yarn run start
+# Unit tests
+npm run test
 
-# watch mode
-$ yarn run start:dev
-
-# production mode
-$ yarn run start:prod
 ```
 
-## Run tests
+## 📦 Available Scripts
+
+- `npm run build` - Build the application
+- `npm run start` - Start the application
+- `npm run start:dev` - Start in development mode with hot reload
+- `npm run lint` - Run ESLint
+- `npm run migration:run` - Run database migrations
+- `npm run migration:generate` - Generate new migration
+- `npm run migration:create` - Create empty migration
+- `npm run migration:revert` - Revert last migration
+
+## 🔧 Configuration
+
+The application uses environment-based configuration:
+
+- `.env.development` - Development environment
+
+Key configuration options:
+
+- Database connection settings
+- JWT secret keys
+- Redis connection
+- Application port and host
+
+## 🐳 Docker
+
+### Development
 
 ```bash
-# unit tests
-$ yarn run test
-
-# e2e tests
-$ yarn run test:e2e
-
-# test coverage
-$ yarn run test:cov
+docker-compose up -d
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### Production
 
 ```bash
-$ yarn install -g mau
-$ mau deploy
+docker build --target production -t notes-api .
+docker run -p 3000:3000 notes-api
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## 📚 API Documentation
 
-## Resources
+Once the application is running, you can access the interactive API documentation at:
 
-Check out a few resources that may come in handy when working with NestJS:
+- **Swagger UI**: http://localhost:3000/api/docs
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## 🤝 Contributing
 
-## Support
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new functionality
+5. Ensure all tests pass
+6. Submit a pull request
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## 📄 License
 
-## Stay in touch
+This project is private and unlicensed.
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## 👨‍💻 Author
 
-## License
+**Lyudvig Asoyan**
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## 🔄 CI
+
+The project includes a GitHub Actions workflow that:
+
+- Runs on pushes to the master branch
+- Installs dependencies
+- Runs linting
+- Builds the application
+- Executes tests
+
+## 🚨 Environment Variables
+
+Create `.env.development` file with the following variables:
+
+```env
+# Database
+DATABASE_HOST=localhost
+DATABASE_PORT=5434
+DATABASE_USER=postgres
+DATABASE_PASSWORD=passwor
+DATABASE_NAME=test_task
+
+# JWT
+JWT_SECRET=your-jwt-secret
+JWT_REFRESH_SECRET=your-refresh-secret
+
+# Redis
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+# Application
+PORT=3000
+NODE_ENV=development
+```
+
+## 📊 Performance
+
+- Database queries are optimized with proper indexing
+- Redis caching for frequently accessed data
+- Transactional database operations for data consistency
+- Efficient JWT token management with refresh tokens

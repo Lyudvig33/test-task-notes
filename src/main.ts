@@ -11,8 +11,9 @@ import { initializeTransactionalContext } from 'typeorm-transactional';
 
 import { AllExceptionsFilter } from '@common/filters';
 import { ResponseManager } from '@common/helpers';
-import { ResponseTransformInterceptor } from '@common/interseptors';
+import { ResponseTransformInterceptor } from '@common/interceptors';
 import { IValidationErrors } from '@common/models/response';
+import { SanitizePipe } from '@common/pipes';
 
 import { AppModule } from './app.module';
 
@@ -26,6 +27,7 @@ async function bootstrap() {
     defaultVersion: '1',
   });
 
+  app.useGlobalPipes(new SanitizePipe());
   app.enableCors();
   app.useGlobalInterceptors(
     new ClassSerializerInterceptor(app.get(Reflector)),
@@ -68,6 +70,7 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
+
   SwaggerModule.setup('/api/docs', app, document, {
     customSiteTitle: 'Test-Task REST API',
   });

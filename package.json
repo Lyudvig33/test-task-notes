@@ -12,9 +12,11 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/src/main.js",
-    "migration:generate": "ts-node -r tsconfig-paths/register -r ts-node/register data-source.ts migration:generate src/common/database/migrations/Init",
-    "migration:run": "ts-node -r tsconfig-paths/register -r ts-node/register data-source.ts migration:run",
-    "seed": "ts-node src/common/database/seed.ts",
+    "typeorm": "ts-node ./node_modules/typeorm/cli",
+    "migration:run": "npm run typeorm migration:run -- -d ormconfig.ts",
+    "migration:generate": "npm run typeorm -- -d ormconfig.ts migration:generate ./src/common/database/migrations",
+    "migration:create": "npm run typeorm -- migration:create ./src/common/database/migrations/$npm_config_name",
+    "migration:revert": "npm run typeorm -- -d ormconfig.ts migration:revert",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -33,10 +35,12 @@
     "@nestjs/testing": "^11.1.5",
     "@nestjs/typeorm": "^11.0.0",
     "@types/bcrypt": "^6.0.0",
+    "@types/ioredis": "^5.0.0",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.2",
+    "ioredis": "^5.6.1",
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
     "passport": "^0.7.0",
@@ -71,22 +75,5 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.1.3"
-  },
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
   }
 }

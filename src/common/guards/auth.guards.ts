@@ -8,7 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 
 import { Request } from 'express';
 
-import { ERROR_MESSAGES } from '@common/erorr-mesagges';
+import { ERROR_MESSAGES } from '@common/error-messages';
 import { ITokenPayload } from '@common/models';
 
 @Injectable()

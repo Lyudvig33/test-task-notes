@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { UsersEntity } from '@common/database/entities';
-import { ERROR_MESSAGES } from '@common/erorr-mesagges';
+import { ERROR_MESSAGES } from '@common/error-messages';
 
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';

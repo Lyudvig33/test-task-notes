@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { NoteEntity, UsersEntity } from '@common/database/entities';
 import { IJwtConfig } from '@common/models';
+import { RedisProvider } from '@common/providers';
 
 import { NotesController } from './notes.controller';
 import { NotesService } from './notes.service';
@@ -31,6 +32,6 @@ import { NotesService } from './notes.service';
     TypeOrmModule.forFeature([UsersEntity, NoteEntity]),
   ],
   controllers: [NotesController],
-  providers: [NotesService],
+  providers: [NotesService, RedisProvider],
 })
 export class NotesModule {}
