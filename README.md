@@ -273,24 +273,37 @@ The project includes a GitHub Actions workflow that:
 Create `.env.development` file with the following variables:
 
 ```env
-# Database
-DATABASE_HOST=localhost
-DATABASE_PORT=5434
-DATABASE_USER=postgres
-DATABASE_PASSWORD=passwor
-DATABASE_NAME=test_task
-
-# JWT
-JWT_SECRET=your-jwt-secret
-JWT_REFRESH_SECRET=your-refresh-secret
-
-# Redis
-REDIS_HOST=localhost
-REDIS_PORT=6379
-
-# Application
+#APP_NAME='test'
+APP_VERSION=1.0
 PORT=3000
 NODE_ENV=development
+ENVIRONMENT=development
+
+# Database configurations
+DATABASE_HOST=postgres
+DATABASE_PORT=5432
+DATABASE_USER=dbUSERNAME
+DATABASE_PASSWORD=dbPASSWORD
+DATABASE_NAME=test_task
+DB_SYNC=true
+
+# Local Database configurations for migration
+DATABASE_HOST=localhost
+DATABASE_PORT=5434
+DATABASE_USER=dbUSERNAME
+DATABASE_PASSWORD=dbPASSWORD
+DATABASE_NAME=test_task
+DB_SYNC=true
+
+#Authentication configurations
+JWT_SECRET=testtest
+JWT_EXPIRES_IN=24h
+JWT_REFRESH_SECRET=yourRefreshSecret
+JWT_REFRESH_SECRET_EXPIRES_IN=7d
+
+#Cache Configuration
+REDIS_HOST=redis
+REDIS_PORT=6379v
 ```
 
 ## 📊 Performance
