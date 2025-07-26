@@ -159,6 +159,13 @@ The API uses JWT-based authentication with the following endpoints:
 
 ## 📝 API Endpoints
 
+## 👤 Demo Account
+
+You can use the demo account to test the app without registration:
+
+🔐 **Email:** `demo@gmail.com`  
+🔑 **Password:** `password1!`
+
 ### Authentication
 
 - `POST /api/v1/auth/register` - Register a new user
